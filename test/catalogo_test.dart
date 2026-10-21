@@ -1,18 +1,18 @@
-// Pruebas de widget de la pantalla del catálogo: cada uno de los cinco widgets
-// de la actividad (Text, Row, Column, Stack y Container) está donde debe y con
-// la configuración que se le dio.
+// Pruebas de widget de la pantalla del catálogo (actividad 3.4): cada uno de
+// los cinco widgets (Text, Row, Column, Stack y Container) está donde debe y
+// con la configuración que se le dio. Se prueba la pantalla directamente.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ldsw_utilizacion_de_widgets/main.dart';
+import 'package:ldsw_utilizacion_de_widgets/catalogo.dart';
 import 'package:ldsw_utilizacion_de_widgets/pelicula.dart';
 
 void main() {
   testWidgets(
     'Muestra el nombre de la app en la barra y las cuatro películas',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
       final titulo = find.descendant(
         of: find.byType(AppBar),
@@ -30,7 +30,7 @@ void main() {
   testWidgets(
     'Text: el título lleva estilo, dos líneas como máximo y puntos suspensivos',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
       final titulo = tester.widget<Text>(find.text('El laberinto del fauno'));
       expect(titulo.maxLines, 2);
@@ -46,7 +46,7 @@ void main() {
   testWidgets('Row: cada tarjeta acomoda el póster y los datos en horizontal', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
     final tarjeta = find.byType(TarjetaPelicula).first;
     final fila = find.descendant(of: tarjeta, matching: find.byType(Row)).first;
@@ -67,7 +67,7 @@ void main() {
   testWidgets(
     'Column: las tarjetas van una debajo de otra, en el orden del catálogo',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
       final tarjetas = find.byType(TarjetaPelicula);
       final columna = find
@@ -107,7 +107,7 @@ void main() {
   testWidgets(
     'Stack: el año va encima del póster, en su esquina inferior derecha',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
       final poster = find.descendant(
         of: find.byType(TarjetaPelicula).first,
@@ -138,7 +138,7 @@ void main() {
   testWidgets(
     'Container: la tarjeta tiene margen, relleno, esquinas redondeadas y sombra; el póster, medida fija',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const MaterialApp(home: CatalogoPage()));
 
       final tarjeta = find.byType(TarjetaPelicula).first;
       final contenedor = tester.widget<Container>(
