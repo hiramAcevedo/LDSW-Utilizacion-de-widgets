@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'catalogo.dart';
 import 'constantes.dart';
+import 'inicio.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const CatalogoPage(),
+      home: const InicioPage(),
     );
   }
 }

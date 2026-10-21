@@ -1,5 +1,5 @@
 name: ldsw_utilizacion_de_widgets
-description: "Catálogo de películas: la pantalla del catálogo construida con Text, Row, Column, Stack y Container (IH732, actividad 3.4)."
+description: "Catálogo de películas en Flutter: la pantalla de inicio y la pantalla del catálogo (IH732, unidad 3)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -57,10 +57,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # La imagen de fondo de la pantalla de inicio (actividad 3.5).
+  assets:
+    - assets/images/fondo_inicio.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
