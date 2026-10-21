@@ -1,5 +1,5 @@
 name: ldsw_utilizacion_de_widgets
-description: "Catalogo de peliculas: la pantalla del catalogo construida con Text, Row, Column, Stack y Container (IH732, actividad 3.4)"
+description: "Catálogo de películas: la pantalla del catálogo construida con Text, Row, Column, Stack y Container (IH732, actividad 3.4)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
