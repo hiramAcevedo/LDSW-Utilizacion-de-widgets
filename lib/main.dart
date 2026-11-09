@@ -14,8 +14,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: nombreApp,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // La variante fidelity deja el color principal cerca del rojo base.
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: rojoPokedex,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: rojoPokedex,
+          foregroundColor: Colors.white,
+        ),
       ),
       home: const InicioPage(),
     );
