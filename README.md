@@ -1,59 +1,72 @@
-# Pokédex
+# Catálogo de películas
 
 Hiram Agustín Acevedo López · Licenciatura en Desarrollo de Sistemas Web
 
-Aplicación en Flutter de la unidad 3 de Diseño de aplicaciones móviles. En la actividad 3.6 es una Pokédex: los 151 Pokémon de la primera generación, con los datos y las imágenes que pide a PokéAPI por HTTP. Cada actividad queda fija en una etiqueta del repositorio:
+Aplicación en Flutter de la unidad 3 de Diseño de aplicaciones móviles. En la actividad 3.7 es el catálogo de películas de las actividades 3.4 y 3.5, ahora con su base de datos en Cloud Firestore: el catálogo lee las películas de la base y un formulario agrega películas nuevas. Cada actividad queda fija en una etiqueta del repositorio:
 
 | Etiqueta | Actividad | Qué hay |
 |---|---|---|
 | `act-3.4` | 3.4. Utilización de widgets | la pantalla del catálogo de películas, con Text, Row, Column, Stack y Container |
 | `act-3.5` | 3.5. Home screen | la pantalla de inicio del catálogo, con la imagen de fondo, el icono y el mensaje Hello World |
-| `act-3.6` | 3.6. Peticiones HTTP | la Pokédex: el inicio, la lista y el detalle, con los datos de PokéAPI |
+| `act-3.6` | 3.6. Peticiones HTTP | una Pokédex con los datos de PokéAPI |
+| `act-3.7` | 3.7. Integración de base de datos | el catálogo conectado a Cloud Firestore, con el formulario para agregar películas |
 
 <p>
-<img src="docs/inicio.png" width="200" alt="El inicio de la Pokédex en el emulador Pixel 9: fondo rojo, la lente azul con tres luces, el nombre Pokédex, el texto de los 151 Pokémon y el botón Ver la Pokédex">
-<img src="docs/pokedex.png" width="200" alt="La lista en el emulador Pixel 9: la barra con la lupa del buscador, el encabezado Primera generación, 151 Pokémon, y una cuadrícula de tres columnas con la imagen, el número y el nombre de cada uno">
-<img src="docs/buscador.png" width="200" alt="El buscador en el emulador Pixel 9: el diálogo Buscar por número con su campo y el teclado numérico abierto">
-<img src="docs/pokemon.png" width="200" alt="El detalle de Pikachu en el emulador Pixel 9: la imagen oficial, el número 025, el tipo Eléctrico, la altura, el peso, las seis estadísticas base y los botones Anterior y Siguiente">
+<img src="docs/inicio.png" width="200" alt="La pantalla de inicio en el emulador Pixel 9: la imagen de fondo, el icono, el nombre Catálogo de películas, el mensaje Hello World y el botón Ver el catálogo">
+<img src="docs/vacio.png" width="200" alt="El catálogo con la base todavía vacía: el aviso Todavía no hay películas y el botón Agregar">
+<img src="docs/agregar.png" width="200" alt="El formulario Agregar película lleno con Amores perros, 2000, Alejandro González Iñárritu, Drama y el color café, con la vista previa de la tarjeta y el botón Guardar">
+<img src="docs/catalogo.png" width="200" alt="El catálogo con las cuatro películas que guardó el formulario, ordenadas por título, y el aviso Se agregó Amores perros al catálogo">
 </p>
 
-## Peticiones HTTP (actividad 3.6)
+## Cloud Firestore (actividad 3.7)
 
-La app arranca en el inicio de la Pokédex. El botón Ver la Pokédex abre la lista de los 151 y, al tocar uno, su detalle. Los datos llegan de PokéAPI (https://pokeapi.co) con el paquete `http` y los pasos de la receta Fetch data from the internet (docs.flutter.dev/cookbook/networking/fetch-data).
+Las películas ya no están escritas en el código: viven en la colección `peliculas` de Cloud Firestore, en el proyecto de Firebase `ldsw-catalogo-peliculas`. Seguí la guía Add Firebase to your Flutter app (firebase.google.com/docs/flutter/setup):
 
-| Pantalla | Petición | Qué muestra |
+1. Con la Firebase CLI, `firebase login` y el proyecto `ldsw-catalogo-peliculas`, en el plan gratuito Spark.
+2. Con la FlutterFire CLI, `flutterfire configure` para Android y web. Registró las dos apps en el proyecto y escribió `lib/firebase_options.dart`, `android/app/google-services.json` y `firebase.json`.
+3. Los paquetes `firebase_core` y `cloud_firestore` en `pubspec.yaml`.
+4. `main` llama a `Firebase.initializeApp` con `DefaultFirebaseOptions.currentPlatform` antes de `runApp`.
+
+| Pantalla | Qué hace con la base |
+|---|---|
+| `InicioPage` | nada; el botón Ver el catálogo abre la lista |
+| `CatalogoPage` | escucha la colección `peliculas`, ordenada por título, con `snapshots()` y un `StreamBuilder`: una película nueva aparece sin recargar |
+| `AgregarPeliculaPage` | valida el formulario y guarda la película con `add`; al terminar regresa al catálogo con el aviso de que se agregó |
+
+Cada película es un documento con seis campos:
+
+| Campo | Tipo | Ejemplo |
 |---|---|---|
-| `InicioPage` | ninguna | el nombre de la app, un texto corto y el botón Ver la Pokédex |
-| `PokedexPage` | `GET https://pokeapi.co/api/v2/pokemon?limit=151` | el número, el nombre y la imagen de cada Pokémon, en una cuadrícula, y la lupa del buscador por número en la barra |
-| `PokemonPage` | `GET https://pokeapi.co/api/v2/pokemon/{id}` | la imagen oficial, los tipos, la altura, el peso y las seis estadísticas base, con los botones Anterior y Siguiente |
+| `titulo` | texto | Roma |
+| `anio` | entero | 2018 |
+| `director` | texto | Alfonso Cuarón |
+| `genero` | texto | Drama |
+| `color` | entero, el color del póster en ARGB | 4283723386 |
+| `creada` | marca de tiempo que pone el servidor | 10 de noviembre de 2026, 01:19 |
 
-El código está en `lib/pokeapi.dart` (las peticiones y los modelos), `lib/pokedex.dart` (la lista y el detalle) y `lib/inicio.dart` (el inicio):
+`Pelicula.fromFirestore` y `toFirestore` (`lib/pelicula.dart`) convierten el documento en un objeto y de vuelta, y `withConverter` los usa en `lib/repositorio_peliculas.dart`. Las pantallas reciben ese repositorio por su constructor; por eso las pruebas pueden darles una base simulada.
 
-1. `http` 1.6.0 está en `pubspec.yaml` y el permiso `INTERNET`, en el manifiesto de Android.
-2. Cada petición usa `get` del paquete y sólo acepta el código 200; con cualquier otro lanza `PokeApiException`.
-3. El cuerpo se convierte con `jsonDecode` y los constructores `PokemonResumen.fromJson` y `Pokemon.fromJson`.
-4. La petición se lanza en `initState` y la pantalla la muestra con un `FutureBuilder`: un indicador mientras carga, los datos cuando llegan y, si falla, un mensaje con el botón Reintentar.
-5. En el detalle, Anterior y Siguiente cambian de Pokémon y lanzan su petición, sin volver a la lista. Anterior está deshabilitado en el #001 y Siguiente en el #151.
-6. La lupa de la barra de la lista abre el buscador: pide el número con el teclado numérico y abre directo el detalle de ese Pokémon, donde siguen Anterior y Siguiente. Si el número no está entre 1 y 151, avisa "Escribe un número del 1 al 151".
+Las reglas de `firestore.rules` dejan leer el catálogo y agregar una película sólo si trae los seis campos con su tipo, un año de 1888 al año que entra y la hora del servidor. Nadie modifica ni borra mientras la app no tenga inicio de sesión. La base está en `nam5`, la ubicación de varias regiones de Estados Unidos.
 
-Usé PokéAPI porque, de las cuatro APIs que proponía la actividad, es la única que hoy responde sin llave ni registro. Lo comprobé el 7 de noviembre de 2026: la de Marvel devuelve error 500 y su portal de desarrolladores ya no existe, OpenWeatherMap pide una llave para cada petición y COVID Tracking dejó de actualizarse el 7 de marzo de 2021.
+Las cuatro películas del catálogo (Roma, Coco, Amores perros y El laberinto del fauno, las mismas de las actividades 3.4 y 3.5) se agregaron con el formulario, en el emulador.
 
-En esta versión la app es sólo la Pokédex; el catálogo de películas de las actividades 3.4 y 3.5 sigue en sus etiquetas.
+En esta versión la app es sólo el catálogo; la Pokédex de la actividad 3.6 sigue en su etiqueta.
 
 ## Abrir el proyecto
 
 1. Clona el repositorio.
 2. Con Flutter 3.47.5 instalado, entra a la carpeta y corre `flutter pub get`.
-3. Enciende un emulador de Android (o conecta un teléfono) y corre `flutter run`. También corre en el navegador con `flutter run -d chrome`.
+3. Enciende un emulador de Android (o conecta un teléfono) y corre `flutter run`.
 
-La Pokédex necesita conexión a internet; sin ella muestra el mensaje con el botón Reintentar.
+La configuración de Firebase viene en el repositorio, así que la app se conecta a la misma base sin pasos extra. Necesita conexión a internet para leer y guardar películas.
 
 ## Pruebas
 
-`flutter test` corre nueve pruebas. Todas usan el cliente simulado del paquete `http` (`MockClient`), así que no salen a internet:
+`flutter test` corre 22 pruebas. Ninguna sale a internet: usan una base de Firestore simulada en memoria, del paquete `fake_cloud_firestore`.
 
-- `test/pokeapi_test.dart`, tres: la dirección que se pide y la conversión del JSON en la lista y en el detalle, y que una respuesta distinta de 200 lanza `PokeApiException`.
-- `test/pokedex_test.dart`, cuatro: sin conexión, la lista muestra el mensaje y Reintentar la trae; Anterior y Siguiente piden el Pokémon de al lado; Anterior está deshabilitado en el #001 y Siguiente en el #151; el buscador usa el teclado numérico, avisa con 0 y con 152 y, con el 25, abre su detalle, donde Siguiente lleva al 26.
-- `test/inicio_test.dart`, dos: la app arranca en el inicio y Ver la Pokédex abre la lista.
+- `test/pelicula_test.dart`, cuatro: los campos y tipos que escribe `toFirestore`, la lectura de un documento con su id, su color y su fecha, el error con un documento incompleto y el documento que crea `agregar`.
+- `test/catalogo_test.dart`, nueve: las seis de la actividad 3.4 (Text, Row, Column, Stack y Container), ahora con las películas de la base; el aviso con la base vacía; el mensaje cuando la base responde con un error; y una película que llega a la base y aparece sola en su lugar.
+- `test/agregar_pelicula_test.dart`, cuatro: el formulario vacío dice qué falta; el año sólo acepta cifras y va de 1888 al año que entra; la vista previa sigue lo que se escribe; y, desde el catálogo, la película se guarda en la base y aparece en la lista.
+- `test/inicio_test.dart`, cinco: las de la actividad 3.5, con la base simulada.
 
-Hecho con Flutter 3.47.5 (Dart 3.13.4). Probado en el emulador Pixel 9 con Android 16.
+Hecho con Flutter 3.47.5 (Dart 3.13.4), `firebase_core` 5.1.0 y `cloud_firestore` 7.1.0. Probado en el emulador Pixel 9 con Android 16.

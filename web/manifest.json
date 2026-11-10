@@ -1,11 +1,11 @@
 {
-    "name": "Pokédex",
-    "short_name": "Pokédex",
+    "name": "Catálogo de películas",
+    "short_name": "Catálogo de películas",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Pokédex en Flutter con los datos de PokéAPI (IH732, actividad 3.6)",
+    "description": "Catálogo de películas en Flutter con Cloud Firestore (IH732, actividad 3.7)",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

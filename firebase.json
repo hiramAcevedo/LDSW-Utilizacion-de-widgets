@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ldsw-catalogo-peliculas",
+          "appId": "1:970752570441:android:c0dba0a3ec8139e241fb98",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ldsw-catalogo-peliculas",
+          "configurations": {
+            "android": "1:970752570441:android:c0dba0a3ec8139e241fb98",
+            "web": "1:970752570441:web:996b1395207ae32741fb98"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "location": "nam5"
+  }
+}

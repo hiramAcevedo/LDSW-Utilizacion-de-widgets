@@ -1,8 +1,3 @@
-import 'package:flutter/material.dart';
-
-/// Nombre de la aplicación. Lo muestran la pantalla de inicio y el título del
-/// MaterialApp.
-const String nombreApp = 'Pokédex';
-
-/// El rojo de la Pokédex: el color base del tema y del inicio.
-const Color rojoPokedex = Color(0xFFDC0A2D);
+/// Nombre de la aplicación, el mismo del wireframe de la actividad 3.2.
+/// Lo muestran la pantalla de inicio y la barra del catálogo.
+const String nombreApp = 'Catálogo de películas';

@@ -1,9 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- La Pokédex pide sus datos a PokéAPI: sin este permiso, las peticiones
-         HTTP fallan en el apk de release. -->
+    <!-- El catálogo lee y guarda las películas en Cloud Firestore: sin este
+         permiso, el apk de release no llega a la base. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Pokédex"
+        android:label="Catálogo de películas"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

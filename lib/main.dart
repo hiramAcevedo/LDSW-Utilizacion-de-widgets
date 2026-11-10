@@ -1,32 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-import 'constantes.dart';
-import 'inicio.dart';
+import 'app.dart';
+import 'firebase_options.dart';
+import 'repositorio_peliculas.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: nombreApp,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // La variante fidelity deja el color principal cerca del rojo base.
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: rojoPokedex,
-          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: rojoPokedex,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      home: const InicioPage(),
-    );
-  }
+/// Arranca Firebase con la configuración que generó `flutterfire configure`
+/// y, después, la app con la base real de Cloud Firestore.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp(repositorio: RepositorioPeliculas(FirebaseFirestore.instance)));
 }

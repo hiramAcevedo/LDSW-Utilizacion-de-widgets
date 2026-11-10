@@ -1,5 +1,5 @@
 name: ldsw_utilizacion_de_widgets
-description: "Pokédex en Flutter con los datos de PokéAPI (IH732, unidad 3)."
+description: "Catálogo de películas en Flutter que guarda y lee las películas en Cloud Firestore (IH732, unidad 3)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,12 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  http: ^1.6.0
-
+  firebase_core: ^5.1.0
+  cloud_firestore: ^7.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -46,6 +48,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  fake_cloud_firestore: ^4.5.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -57,6 +60,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/fondo_inicio.jpg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
