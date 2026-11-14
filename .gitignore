@@ -46,3 +46,11 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# El token de TMDB de cada quien (ver README); nunca se sube
+tmdb.json
+
+# Los registros de la Firebase CLI y de sus emuladores
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

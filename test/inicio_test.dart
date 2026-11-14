@@ -1,141 +1,68 @@
-// Pruebas de widget de la pantalla de inicio (actividad 3.5): el Text con
-// Hello World, la Image de fondo y el Icon están donde deben y con la
-// configuración que se les dio, y el botón abre el catálogo. Desde la 3.7 la
-// app recibe la base de películas; aquí, la simulada de fake_cloud_firestore.
+// Pruebas de la pantalla de inicio: sin sesión, la app da la bienvenida y
+// ofrece registrarse o ingresar; el fondo es la imagen de la actividad 3.5.
 
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
-import 'package:ldsw_utilizacion_de_widgets/app.dart';
-import 'package:ldsw_utilizacion_de_widgets/catalogo.dart';
-import 'package:ldsw_utilizacion_de_widgets/constantes.dart';
+import 'package:ldsw_utilizacion_de_widgets/cuenta.dart';
 import 'package:ldsw_utilizacion_de_widgets/inicio.dart';
-import 'package:ldsw_utilizacion_de_widgets/repositorio_peliculas.dart';
 
 import 'datos_de_prueba.dart';
 
-/// La app sobre una base simulada vacía.
-MyApp appSinPeliculas() =>
-    MyApp(repositorio: RepositorioPeliculas(FakeFirebaseFirestore()));
-
 void main() {
+  setUpAll(FakeFirebaseFirestore.new);
+
+  testWidgets('Sin sesión, el inicio da la bienvenida y ofrece registrarse o '
+      'ingresar', (WidgetTester tester) async {
+    await abrirApp(tester, await serviciosDePrueba(conSesion: false));
+
+    expect(find.byType(InicioPage), findsOneWidget);
+    expect(find.text('Catálogo de películas'), findsOneWidget);
+    expect(find.text(InicioPage.bienvenida), findsOneWidget);
+    expect(find.text(InicioPage.invitacion), findsOneWidget);
+    expect(botonCon('Crear cuenta'), findsOneWidget);
+    expect(botonCon('Ya tengo cuenta'), findsOneWidget);
+    // Sin sesión no se ve el catálogo.
+    expect(find.byType(TabBar), findsNothing);
+  });
+
   testWidgets(
-    'La app arranca en el inicio y muestra el nombre, Hello World y el icono',
+    'El fondo es la imagen de la actividad 3.5, en la base de un Stack',
     (WidgetTester tester) async {
-      await tester.pumpWidget(appSinPeliculas());
+      await abrirApp(tester, await serviciosDePrueba(conSesion: false));
 
-      expect(find.byType(InicioPage), findsOneWidget);
-      expect(find.text(nombreApp), findsOneWidget);
-      expect(find.text('Hello World'), findsOneWidget);
-      expect(find.byIcon(Icons.local_movies), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'Image: la imagen de fondo es la base del Stack, es el asset declarado y cubre la pantalla',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(appSinPeliculas());
-
-      final imagen = find.byType(Image);
-      expect(imagen, findsOneWidget);
-      final widget = tester.widget<Image>(imagen);
-      expect(widget.image, isA<AssetImage>());
-      expect((widget.image as AssetImage).assetName, InicioPage.imagenFondo);
-      expect(widget.fit, BoxFit.cover);
-
-      // Es el primer hijo del Stack (la base, debajo de todo lo demás) y el
-      // Stack la estira a la pantalla completa.
-      final pila = tester.widget<Stack>(
-        find
-            .descendant(
-              of: find.byType(InicioPage),
-              matching: find.byType(Stack),
-            )
-            .first,
+      final fondo = find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName == InicioPage.imagenFondo,
       );
-      expect(pila.fit, StackFit.expand);
-      expect(pila.children.first, isA<Image>());
-      expect(tester.getSize(imagen), tester.getSize(find.byType(InicioPage)));
-    },
-  );
-
-  testWidgets(
-    'Icon: el icono va sobre la imagen, en blanco y arriba del nombre de la app',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(appSinPeliculas());
-
-      final icono = find.byIcon(Icons.local_movies);
-      final widget = tester.widget<Icon>(icono);
-      expect(widget.size, 96);
-      expect(widget.color, Colors.white);
-
-      final rectImagen = tester.getRect(find.byType(Image));
-      expect(rectImagen.contains(tester.getCenter(icono)), isTrue);
-      expect(
-        tester.getBottomLeft(icono).dy <=
-            tester.getTopLeft(find.text(nombreApp)).dy,
-        isTrue,
-      );
-    },
-  );
-
-  testWidgets(
-    'Column: icono, nombre, bienvenida y botón bajan centrados, en ese orden',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(appSinPeliculas());
-
-      final icono = find.byIcon(Icons.local_movies);
-      final nombre = find.text(nombreApp);
-      final bienvenida = find.text('Hello World');
-      final boton = find.bySubtype<FilledButton>();
-      expect(boton, findsOneWidget);
-
-      // Los cuatro cuelgan de la misma Column.
-      final columna = find
-          .ancestor(of: icono, matching: find.byType(Column))
+      expect(fondo, findsOneWidget);
+      final stack = find
+          .ancestor(of: fondo, matching: find.byType(Stack))
           .first;
-      for (final elemento in [nombre, bienvenida, boton]) {
-        expect(
-          find.descendant(of: columna, matching: elemento),
-          findsOneWidget,
-        );
-      }
-
-      // En orden, de arriba abajo.
       expect(
-        tester.getBottomLeft(icono).dy <= tester.getTopLeft(nombre).dy,
-        isTrue,
+        find.descendant(of: stack, matching: find.text(InicioPage.bienvenida)),
+        findsOneWidget,
       );
-      expect(
-        tester.getBottomLeft(nombre).dy <= tester.getTopLeft(bienvenida).dy,
-        isTrue,
-      );
-      expect(
-        tester.getBottomLeft(bienvenida).dy <= tester.getTopLeft(boton).dy,
-        isTrue,
-      );
-
-      // Y centrados en el ancho de la pantalla.
-      final centro = tester.getCenter(find.byType(InicioPage)).dx;
-      for (final elemento in [icono, nombre, bienvenida, boton]) {
-        expect(
-          tester.getCenter(elemento).dx,
-          moreOrLessEquals(centro, epsilon: 1),
-        );
-      }
     },
   );
 
-  testWidgets('El botón Ver el catálogo abre la pantalla del catálogo', (
+  testWidgets('Crear cuenta abre el registro y Ya tengo cuenta, el ingreso', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(MyApp(repositorio: await repositorioConEjemplos()));
+    await abrirApp(tester, await serviciosDePrueba(conSesion: false));
 
-    await tester.tap(find.text('Ver el catálogo'));
+    await tester.tap(find.text('Crear cuenta'));
     await tester.pumpAndSettle();
+    expect(find.byType(RegistroPage), findsOneWidget);
 
-    expect(find.byType(CatalogoPage), findsOneWidget);
-    expect(find.text('Roma'), findsOneWidget);
+    // El botón Atrás de la barra, con su texto en español.
+    await tester.tap(find.byTooltip('Atrás'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ya tengo cuenta'));
+    await tester.pumpAndSettle();
+    expect(find.byType(IngresoPage), findsOneWidget);
   });
 }

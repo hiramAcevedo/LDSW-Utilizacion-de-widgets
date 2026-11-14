@@ -1,34 +1,27 @@
-// Pruebas de widget de la pantalla del catálogo. Las seis primeras vienen de
-// la actividad 3.4 (Text, Row, Column, Stack y Container donde deben y con la
-// configuración que se les dio); desde la 3.7 las películas llegan de Cloud
-// Firestore, aquí de la base simulada de fake_cloud_firestore. Las demás
-// prueban lo que trajo la base: el catálogo vacío, el error y una película
-// nueva que aparece sola.
+// Pruebas de la pantalla principal con la sesión abierta: el menú de
+// pestañas de arriba, el catálogo con el título y el póster de cada película,
+// la descripción de la película elegida, los avisos y el menú de la cuenta.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:ldsw_utilizacion_de_widgets/catalogo.dart';
+import 'package:ldsw_utilizacion_de_widgets/descripcion.dart';
+import 'package:ldsw_utilizacion_de_widgets/inicio.dart';
 import 'package:ldsw_utilizacion_de_widgets/pelicula.dart';
-import 'package:ldsw_utilizacion_de_widgets/repositorio_peliculas.dart';
+import 'package:ldsw_utilizacion_de_widgets/poster.dart';
+import 'package:ldsw_utilizacion_de_widgets/repositorio_catalogo.dart';
+import 'package:ldsw_utilizacion_de_widgets/servicios.dart';
+import 'package:ldsw_utilizacion_de_widgets/sesion.dart';
+import 'package:ldsw_utilizacion_de_widgets/tmdb.dart';
 
 import 'datos_de_prueba.dart';
 
-/// Abre el catálogo sobre esa base y espera la primera respuesta.
-Future<void> abrirCatalogo(
-  WidgetTester tester,
-  RepositorioPeliculas repositorio,
-) async {
-  await tester.pumpWidget(
-    MaterialApp(home: CatalogoPage(repositorio: repositorio)),
-  );
-  await tester.pumpAndSettle();
-}
-
-/// Una base que, al pedirle las películas, responde con un error de permisos.
-class RepositorioSinPermiso extends RepositorioPeliculas {
+/// Una base que, al pedirle el catálogo, responde con un error de permisos.
+class RepositorioSinPermiso extends RepositorioCatalogo {
   RepositorioSinPermiso() : super(FakeFirebaseFirestore());
 
   @override
@@ -42,215 +35,156 @@ class RepositorioSinPermiso extends RepositorioPeliculas {
 }
 
 void main() {
-  testWidgets(
-    'Muestra el nombre de la app en la barra y las cuatro películas de la base',
-    (WidgetTester tester) async {
-      await abrirCatalogo(tester, await repositorioConEjemplos());
+  setUpAll(FakeFirebaseFirestore.new);
 
-      final titulo = find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Catálogo de películas'),
-      );
-      expect(titulo, findsOneWidget);
-      expect(find.text('4 títulos'), findsOneWidget);
+  testWidgets(
+    'Arriba está el menú para elegir el catálogo o la administración',
+    (WidgetTester tester) async {
+      await abrirApp(tester, await serviciosDePrueba());
+
       expect(
-        find.byType(TarjetaPelicula),
-        findsNWidgets(peliculasDeEjemplo.length),
-      );
-      for (final pelicula in peliculasDeEjemplo) {
-        expect(find.text(pelicula.titulo), findsOneWidget);
-        expect(find.text(pelicula.director), findsOneWidget);
-      }
-    },
-  );
-
-  testWidgets(
-    'Text: el título lleva estilo, dos líneas como máximo y puntos suspensivos',
-    (WidgetTester tester) async {
-      await abrirCatalogo(tester, await repositorioConEjemplos());
-
-      final titulo = tester.widget<Text>(find.text('El laberinto del fauno'));
-      expect(titulo.maxLines, 2);
-      expect(titulo.overflow, TextOverflow.ellipsis);
-      expect(titulo.style?.fontWeight, FontWeight.w600);
-
-      final director = tester.widget<Text>(find.text('Guillermo del Toro'));
-      expect(director.maxLines, 1);
-      expect(director.overflow, TextOverflow.ellipsis);
-    },
-  );
-
-  testWidgets('Row: cada tarjeta acomoda el póster y los datos en horizontal', (
-    WidgetTester tester,
-  ) async {
-    await abrirCatalogo(tester, await repositorioConEjemplos());
-
-    final tarjeta = find.byType(TarjetaPelicula).first;
-    final fila = find.descendant(of: tarjeta, matching: find.byType(Row)).first;
-    final poster = find.descendant(of: fila, matching: find.byType(Stack));
-    final datos = find.descendant(of: fila, matching: find.byType(Column));
-    expect(poster, findsOneWidget);
-    expect(datos, findsOneWidget);
-
-    // El póster queda a la izquierda de los datos y los dos están centrados
-    // en la misma altura.
-    expect(tester.getTopRight(poster).dx < tester.getTopLeft(datos).dx, isTrue);
-    expect(
-      tester.getCenter(datos).dy,
-      moreOrLessEquals(tester.getCenter(poster).dy, epsilon: 1),
-    );
-  });
-
-  testWidgets(
-    'Column: las tarjetas van una debajo de otra, ordenadas por título',
-    (WidgetTester tester) async {
-      await abrirCatalogo(tester, await repositorioConEjemplos());
-
-      final tarjetas = find.byType(TarjetaPelicula);
-      final columna = find
-          .ancestor(of: tarjetas.first, matching: find.byType(Column))
-          .first;
-      for (var i = 0; i < peliculasPorTitulo.length; i++) {
-        // Cada tarjeta cuelga de la misma Column y muestra la película que le
-        // toca por orden alfabético.
-        expect(
-          find.descendant(
-            of: tarjetas.at(i),
-            matching: find.text(peliculasPorTitulo[i].titulo),
-          ),
-          findsOneWidget,
-        );
-        expect(
-          find.descendant(
-            of: columna,
-            matching: find.text(peliculasPorTitulo[i].titulo),
-          ),
-          findsOneWidget,
-        );
-        if (i > 0) {
-          expect(
-            tester.getTopLeft(tarjetas.at(i)).dy >
-                tester.getBottomLeft(tarjetas.at(i - 1)).dy,
-            isTrue,
-          );
-          expect(
-            tester.getTopLeft(tarjetas.at(i)).dx,
-            tester.getTopLeft(tarjetas.at(i - 1)).dx,
-          );
-        }
-      }
-    },
-  );
-
-  testWidgets(
-    'Stack: el año va encima del póster, en su esquina inferior derecha',
-    (WidgetTester tester) async {
-      await abrirCatalogo(tester, await repositorioConEjemplos());
-
-      // La primera tarjeta, por título, es Amores perros, del 2000.
-      final poster = find.descendant(
-        of: find.byType(TarjetaPelicula).first,
-        matching: find.byType(Stack),
-      );
-      final anio = find.descendant(of: poster, matching: find.text('2000'));
-      expect(anio, findsOneWidget);
-      expect(
-        find.ancestor(of: anio, matching: find.byType(Positioned)),
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Catálogo de películas'),
+        ),
         findsOneWidget,
       );
-
-      final etiqueta = tester.getRect(
-        find.ancestor(of: anio, matching: find.byType(Container)).first,
-      );
-      final rectPoster = tester.getRect(poster);
+      final menu = find.byType(TabBar);
+      expect(menu, findsOneWidget);
       expect(
-        etiqueta.right,
-        moreOrLessEquals(rectPoster.right - 4, epsilon: 1),
+        find.descendant(of: menu, matching: find.text('Catálogo')),
+        findsOneWidget,
       );
       expect(
-        etiqueta.bottom,
-        moreOrLessEquals(rectPoster.bottom - 4, epsilon: 1),
+        find.descendant(of: menu, matching: find.text('Administración')),
+        findsOneWidget,
       );
+      // El menú está arriba, debajo del título.
+      expect(tester.getTopLeft(menu).dy < 200, isTrue);
     },
   );
 
-  testWidgets(
-    'Container: la tarjeta tiene margen, relleno, esquinas redondeadas y sombra; el póster, medida fija',
-    (WidgetTester tester) async {
-      await abrirCatalogo(tester, await repositorioConEjemplos());
+  testWidgets('El catálogo muestra el título y el póster de cada película, por '
+      'título', (WidgetTester tester) async {
+    await abrirApp(tester, await serviciosDePrueba());
 
-      final tarjeta = find.byType(TarjetaPelicula).first;
-      final contenedor = tester.widget<Container>(
-        find.descendant(of: tarjeta, matching: find.byType(Container)).first,
+    expect(find.text('4 títulos'), findsOneWidget);
+    final tarjetas = find.byType(TarjetaDePoster);
+    expect(tarjetas, findsNWidgets(4));
+    for (var i = 0; i < peliculasPorTitulo.length; i++) {
+      final pelicula = peliculasPorTitulo[i];
+      expect(
+        find.descendant(
+          of: tarjetas.at(i),
+          matching: find.text(pelicula.titulo),
+        ),
+        findsOneWidget,
       );
-      expect(contenedor.margin, const EdgeInsets.symmetric(horizontal: 16));
-      expect(contenedor.padding, const EdgeInsets.all(12));
-      final decoracion = contenedor.decoration as BoxDecoration;
-      expect(decoracion.borderRadius, BorderRadius.circular(16));
-      expect(decoracion.boxShadow, isNotEmpty);
-
-      final poster = find.descendant(of: tarjeta, matching: find.byType(Stack));
-      expect(tester.getSize(poster), const Size(72, 104));
-    },
-  );
-
-  testWidgets('Sin películas en la base, invita a agregar la primera', (
-    WidgetTester tester,
-  ) async {
-    await abrirCatalogo(tester, RepositorioPeliculas(FakeFirebaseFirestore()));
-
-    expect(find.text('Todavía no hay películas'), findsOneWidget);
-    expect(
-      find.text('Agrega la primera con el botón Agregar.'),
-      findsOneWidget,
-    );
-    expect(find.byType(TarjetaPelicula), findsNothing);
-    expect(
-      find.widgetWithText(FloatingActionButton, 'Agregar'),
-      findsOneWidget,
-    );
+      final poster = tester.widget<Poster>(
+        find.descendant(of: tarjetas.at(i), matching: find.byType(Poster)),
+      );
+      expect(poster.url, pelicula.imagen);
+    }
   });
 
-  testWidgets('Si la base responde con un error, lo dice en vez de la lista', (
+  testWidgets('Tocar una película abre su descripción con todos sus datos', (
     WidgetTester tester,
   ) async {
-    await abrirCatalogo(tester, RepositorioSinPermiso());
+    await abrirApp(tester, await serviciosDePrueba());
+
+    await tester.tap(find.text('El laberinto del fauno'));
+    await tester.pumpAndSettle();
+
+    final fauno = peliculasDeEjemplo[2];
+    final descripcion = find.byType(DescripcionPage);
+    expect(descripcion, findsOneWidget);
+    Finder dentro(String texto) =>
+        find.descendant(of: descripcion, matching: find.text(texto));
+    // El título va en la barra y como encabezado.
+    expect(dentro(fauno.titulo), findsNWidgets(2));
+    expect(dentro('Año de estreno'), findsOneWidget);
+    expect(dentro('2006'), findsOneWidget);
+    expect(dentro('Dirección'), findsOneWidget);
+    expect(dentro('Guillermo del Toro'), findsOneWidget);
+    expect(dentro('Género'), findsOneWidget);
+    expect(dentro('Fantasía, Drama'), findsOneWidget);
+    expect(dentro('Sinopsis'), findsOneWidget);
+    expect(dentro(fauno.sinopsis), findsOneWidget);
+    final poster = tester.widget<Poster>(
+      find.descendant(of: descripcion, matching: find.byType(Poster)),
+    );
+    expect(poster.url, fauno.imagen);
+  });
+
+  testWidgets('Sin películas en la base, el catálogo lo dice', (
+    WidgetTester tester,
+  ) async {
+    await abrirApp(tester, await serviciosDePrueba(conPeliculas: false));
+
+    expect(find.text('Todavía no hay películas'), findsOneWidget);
+    expect(find.byType(TarjetaDePoster), findsNothing);
+  });
+
+  testWidgets('Si la base responde con un error, lo dice en vez del catálogo', (
+    WidgetTester tester,
+  ) async {
+    final servicios = Servicios(
+      sesion: Sesion(
+        auth: MockFirebaseAuth(signedIn: true, mockUser: usuarioDePrueba),
+        firestore: FakeFirebaseFirestore(),
+      ),
+      catalogo: RepositorioSinPermiso(),
+      tmdb: Tmdb(token: '', cliente: clienteSinRed),
+    );
+    await abrirApp(tester, servicios);
 
     expect(find.text('No se pudo leer el catálogo'), findsOneWidget);
     expect(find.textContaining('permission-denied'), findsOneWidget);
-    expect(find.byType(TarjetaPelicula), findsNothing);
   });
 
-  testWidgets(
-    'Una película que llega a la base aparece sola, en su lugar por título',
-    (WidgetTester tester) async {
-      final repositorio = await repositorioConEjemplos();
-      await abrirCatalogo(tester, repositorio);
-      expect(find.byType(TarjetaPelicula), findsNWidgets(4));
+  testWidgets('Una película dada de alta en otro teléfono aparece sola', (
+    WidgetTester tester,
+  ) async {
+    final servicios = await serviciosDePrueba();
+    await abrirApp(tester, servicios);
+    expect(find.byType(TarjetaDePoster), findsNWidgets(4));
 
-      // Alguien la agrega desde otro teléfono: el catálogo no se recarga.
-      await repositorio.agregar(
-        const Pelicula(
-          titulo: 'Como agua para chocolate',
-          anio: 1992,
-          director: 'Alfonso Arau',
-          genero: 'Romance',
-          color: Color(0xFFC62828),
-        ),
-      );
-      await tester.pumpAndSettle();
+    await servicios.catalogo.darDeAlta(
+      const Pelicula(
+        titulo: 'Como agua para chocolate',
+        anio: 1992,
+        director: 'Alfonso Arau',
+        genero: 'Romance',
+        sinopsis: 'Tita cocina lo que no puede decir.',
+        imagen: 'https://image.tmdb.org/t/p/w500/agua.jpg',
+      ),
+      uid: 'otro-usuario',
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('5 títulos'), findsOneWidget);
-      final tarjetas = find.byType(TarjetaPelicula);
-      expect(tarjetas, findsNWidgets(5));
-      // Entre Coco y El laberinto del fauno.
-      expect(
-        find.descendant(
-          of: tarjetas.at(2),
-          matching: find.text('Como agua para chocolate'),
-        ),
-        findsOneWidget,
-      );
-    },
-  );
+    expect(find.text('5 títulos'), findsOneWidget);
+    // Entre Coco y El laberinto del fauno.
+    expect(
+      find.descendant(
+        of: find.byType(TarjetaDePoster).at(2),
+        matching: find.text('Como agua para chocolate'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('El menú de la cuenta dice quién ingresó y Cerrar sesión vuelve '
+      'al inicio', (WidgetTester tester) async {
+    await abrirApp(tester, await serviciosDePrueba());
+
+    await tester.tap(find.byTooltip('Tu cuenta'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ana'), findsOneWidget);
+    expect(find.text('ana@ejemplo.com'), findsOneWidget);
+
+    await tester.tap(find.text('Cerrar sesión'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InicioPage), findsOneWidget);
+    expect(find.byType(TabBar), findsNothing);
+  });
 }

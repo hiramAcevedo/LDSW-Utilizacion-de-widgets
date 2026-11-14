@@ -1,16 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'constantes.dart';
-import 'inicio.dart';
-import 'repositorio_peliculas.dart';
+import 'puerta.dart';
+import 'servicios.dart';
 
-/// La app: el tema, el nombre y la pantalla de inicio. Recibe la base de
-/// películas, la real en `main.dart` y una simulada en las pruebas.
-class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.repositorio});
+/// La app: el tema, el nombre, el idioma y la puerta de la sesión.
+class CatalogoApp extends StatelessWidget {
+  const CatalogoApp({super.key, required this.servicios});
 
-  final RepositorioPeliculas repositorio;
+  final Servicios servicios;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: InicioPage(repositorio: repositorio),
+      home: PuertaDeSesion(servicios: servicios),
     );
   }
 }

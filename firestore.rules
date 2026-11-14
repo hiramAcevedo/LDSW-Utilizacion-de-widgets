@@ -1,11 +1,12 @@
 rules_version = '2';
 
-// Reglas de Cloud Firestore del catálogo de películas (IH732, actividad 3.7).
-// Cualquiera puede leer el catálogo y agregar una película con sus seis campos
-// y sus tipos; nadie la modifica ni la borra hasta que la app tenga inicio de
-// sesión y administración (producto integrador).
+// Reglas de Cloud Firestore del catálogo de películas (IH732).
+// - peliculas: la colección de la actividad 3.7, sin cambios.
+// - catalogo y usuarios: el producto integrador, sólo con la sesión iniciada.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------- Actividad 3.7 (se conserva tal cual) ----------
 
     function esPeliculaValida(datos) {
       let campos = ['titulo', 'anio', 'director', 'genero', 'color', 'creada'];
@@ -22,6 +23,58 @@ service cloud.firestore {
     match /peliculas/{pelicula} {
       allow read: if true;
       allow create: if esPeliculaValida(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // ---------- Producto integrador ----------
+
+    function conSesion() {
+      return request.auth != null;
+    }
+
+    function textoEntre(valor, minimo, maximo) {
+      return valor is string && valor.size() >= minimo && valor.size() <= maximo;
+    }
+
+    // Una película del catálogo: los seis datos de la pantalla de
+    // administración, el id de TMDB si vino de la búsqueda, quién la agregó
+    // y la hora del servidor.
+    function esFichaValida(datos) {
+      let campos = ['titulo', 'anio', 'director', 'genero', 'sinopsis', 'imagen', 'tmdbId', 'agregadaPor', 'creada'];
+      let obligatorios = ['titulo', 'anio', 'director', 'genero', 'sinopsis', 'imagen', 'agregadaPor', 'creada'];
+      return datos.keys().hasOnly(campos)
+        && datos.keys().hasAll(obligatorios)
+        && textoEntre(datos.titulo, 1, 200)
+        && datos.anio is int && datos.anio >= 1888 && datos.anio <= request.time.year() + 1
+        && textoEntre(datos.director, 1, 200)
+        && textoEntre(datos.genero, 1, 80)
+        && textoEntre(datos.sinopsis, 1, 3000)
+        && textoEntre(datos.imagen, 12, 500) && datos.imagen.matches('https?://.+')
+        && (!('tmdbId' in datos) || datos.tmdbId == null || datos.tmdbId is int)
+        && datos.agregadaPor == request.auth.uid
+        && datos.creada == request.time;
+    }
+
+    // Lo ven los usuarios registrados; cualquiera de ellos da de alta y de
+    // baja desde la pantalla de administración. No se editan: se da de baja
+    // y se vuelve a dar de alta.
+    match /catalogo/{pelicula} {
+      allow read: if conSesion();
+      allow create: if conSesion() && esFichaValida(request.resource.data);
+      allow delete: if conSesion();
+      allow update: if false;
+    }
+
+    // El registro de cada usuario: su nombre, su correo y cuándo se registró.
+    // Cada quien lee y crea sólo el suyo.
+    match /usuarios/{uid} {
+      allow read: if conSesion() && request.auth.uid == uid;
+      allow create: if conSesion() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nombre', 'correo', 'creado'])
+        && request.resource.data.keys().hasAll(['nombre', 'correo', 'creado'])
+        && textoEntre(request.resource.data.nombre, 1, 80)
+        && request.resource.data.correo == request.auth.token.email
+        && request.resource.data.creado == request.time;
       allow update, delete: if false;
     }
   }

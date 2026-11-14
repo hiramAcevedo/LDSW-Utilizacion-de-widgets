@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-/// Una película del catálogo, con los datos que muestra su tarjeta. Cada una
-/// es un documento de la colección `peliculas` de Cloud Firestore.
+/// Una película del catálogo, como se guarda en la colección `catalogo` de
+/// Cloud Firestore: los seis datos de la pantalla de administración, el id de
+/// TMDB si se dio de alta desde la búsqueda, quién la dio de alta y cuándo.
 class Pelicula {
   const Pelicula({
     this.id,
@@ -10,26 +11,39 @@ class Pelicula {
     required this.anio,
     required this.director,
     required this.genero,
-    required this.color,
+    required this.sinopsis,
+    required this.imagen,
+    this.tmdbId,
+    this.agregadaPor,
     this.creada,
   });
 
-  /// El id del documento en Firestore; es `null` mientras no se guarda.
+  /// El id del documento en Firestore; nulo mientras no se guarda.
   final String? id;
-
   final String titulo;
+
+  /// El año de estreno.
   final int anio;
   final String director;
+
+  /// El género cinematográfico; si son dos, van separados por coma.
   final String genero;
+  final String sinopsis;
 
-  /// Color del póster mientras el catálogo no tiene imágenes.
-  final Color color;
+  /// La URL del póster.
+  final String imagen;
 
-  /// Cuándo se guardó en la base. Lo pone el servidor de Firestore.
+  /// El id de la película en TMDB, si se dio de alta desde la búsqueda.
+  final int? tmdbId;
+
+  /// El uid de quien la dio de alta.
+  final String? agregadaPor;
+
+  /// La hora del servidor en que se dio de alta.
   final DateTime? creada;
 
-  /// Lee una película de un documento de la colección `peliculas`. Si al
-  /// documento le falta un campo o trae otro tipo, lanza [FormatException].
+  /// Convierte un documento de Firestore en una película. Si al documento le
+  /// falta un dato o trae otro tipo, lanza un FormatException.
   factory Pelicula.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> documento,
     SnapshotOptions? opciones,
@@ -40,7 +54,8 @@ class Pelicula {
             'anio': int anio,
             'director': String director,
             'genero': String genero,
-            'color': int color,
+            'sinopsis': String sinopsis,
+            'imagen': String imagen,
           } &&
           final datos =>
         Pelicula(
@@ -49,8 +64,10 @@ class Pelicula {
           anio: anio,
           director: director,
           genero: genero,
-          color: Color(color),
-          // Mientras el servidor no confirma la escritura, creada llega nula.
+          sinopsis: sinopsis,
+          imagen: imagen,
+          tmdbId: datos['tmdbId'] as int?,
+          agregadaPor: datos['agregadaPor'] as String?,
           creada: (datos['creada'] as Timestamp?)?.toDate(),
         ),
       _ => throw FormatException(
@@ -59,37 +76,45 @@ class Pelicula {
     };
   }
 
-  /// Los campos del documento. El color se guarda como entero ARGB y, si la
-  /// película es nueva, la fecha de creación la pone el servidor.
+  /// Los campos del documento. Si la película es nueva, la hora la pone el
+  /// servidor.
   Map<String, Object?> toFirestore() => {
     'titulo': titulo,
     'anio': anio,
     'director': director,
     'genero': genero,
-    'color': color.toARGB32(),
+    'sinopsis': sinopsis,
+    'imagen': imagen,
+    'tmdbId': tmdbId,
+    'agregadaPor': agregadaPor,
     'creada': creada == null
         ? FieldValue.serverTimestamp()
         : Timestamp.fromDate(creada!),
   };
+
+  /// La misma película, a nombre de quien la da de alta.
+  Pelicula conAutor(String uid) => Pelicula(
+    id: id,
+    titulo: titulo,
+    anio: anio,
+    director: director,
+    genero: genero,
+    sinopsis: sinopsis,
+    imagen: imagen,
+    tmdbId: tmdbId,
+    agregadaPor: uid,
+    creada: creada,
+  );
+
+  /// El color del bloque que se ve mientras carga el póster o si la URL no
+  /// responde. Sale del título, así que cada película conserva el suyo.
+  Color get colorDeRespaldo =>
+      coloresDePoster[titulo.codeUnits.fold(0, (suma, letra) => suma + letra) %
+          coloresDePoster.length];
 }
 
-/// Los géneros que ofrece el formulario para agregar una película.
-const List<String> generos = [
-  'Acción',
-  'Animación',
-  'Ciencia ficción',
-  'Comedia',
-  'Documental',
-  'Drama',
-  'Fantasía',
-  'Musical',
-  'Romance',
-  'Suspenso',
-  'Terror',
-];
-
-/// Los colores de póster que ofrece el formulario. Los cuatro primeros son los
-/// de las películas de ejemplo de las actividades 3.4 y 3.5.
+/// Los colores de los pósteres de las actividades 3.4 a 3.7; ahora son el
+/// fondo mientras carga la imagen.
 const List<Color> coloresDePoster = [
   Color(0xFF546E7A),
   Color(0xFFEF6C00),
