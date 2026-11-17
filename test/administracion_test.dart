@@ -15,6 +15,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:ldsw_utilizacion_de_widgets/alta.dart';
 import 'package:ldsw_utilizacion_de_widgets/poster.dart';
 import 'package:ldsw_utilizacion_de_widgets/servicios.dart';
+import 'package:ldsw_utilizacion_de_widgets/tmdb.dart';
 
 import 'datos_de_prueba.dart';
 
@@ -189,6 +190,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AltaPage), findsOneWidget);
     expect(find.textContaining('necesita el token de TMDB'), findsOneWidget);
+    expect(find.text(Tmdb.atribucion), findsOneWidget);
 
     await tocar(tester, 'guardar');
     for (final aviso in [
@@ -256,6 +258,7 @@ void main() {
     await tester.tap(find.byKey(const Key('dar-de-alta')));
     await tester.pumpAndSettle();
 
+    expect(find.text(Tmdb.atribucion), findsOneWidget);
     await tester.enterText(find.byKey(const Key('busqueda')), 'y tu mama');
     await tester.tap(find.byKey(const Key('buscar')));
     await tester.pumpAndSettle();

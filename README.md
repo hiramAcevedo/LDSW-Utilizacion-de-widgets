@@ -12,6 +12,17 @@ Aplicación en Flutter de Diseño de aplicaciones móviles. El producto integrad
 | `act-3.7` | 3.7. Integración de base de datos | el catálogo conectado a Cloud Firestore, con un formulario para agregar películas |
 | `act-pi` | Producto integrador | inicio con registro e ingreso, catálogo, descripción y administración, con Firebase y TMDB |
 
+<p>
+<img src="docs/inicio.png" width="200" alt="La pantalla de inicio: la imagen de fondo, el icono, el nombre Catálogo de películas, la bienvenida y los botones Crear cuenta y Ya tengo cuenta">
+<img src="docs/catalogo.png" width="200" alt="El catálogo con el menú de pestañas Catálogo y Administración arriba, y el póster y el título de cada película">
+<img src="docs/descripcion.png" width="200" alt="La descripción de El laberinto del fauno: póster, título, año de estreno 2006, dirección Guillermo del Toro, género Fantasía, Drama y la sinopsis">
+</p>
+<p>
+<img src="docs/administracion.png" width="200" alt="La administración: el botón Dar de alta una película y la tarjeta de cada película con su papelera para darla de baja">
+<img src="docs/busqueda.png" width="200" alt="La búsqueda en TMDB de Toy Story: los resultados con su póster y su año, y el aviso de TMDB">
+<img src="docs/alta.png" width="200" alt="El formulario de alta llenado con la ficha de Roma que trajo TMDB: la sinopsis, la URL de la imagen, la vista previa y el botón Dar de alta">
+</p>
+
 ## Las cuatro pantallas
 
 | Pantalla | Qué hace |
@@ -54,7 +65,9 @@ El token de TMDB no está en el repositorio. Para usar la búsqueda:
 
 Sin el token, la app funciona igual y el formulario de alta se llena a mano.
 
-Este producto usa la API de TMDB, pero TMDB no lo respalda ni lo certifica.
+Los datos y los pósteres de la búsqueda vienen de [TMDB](https://www.themoviedb.org). Como piden sus condiciones de uso, la app lo dice junto a la búsqueda y en Acerca de:
+
+> This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## Abrir el proyecto
 

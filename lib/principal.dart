@@ -5,6 +5,7 @@ import 'administracion.dart';
 import 'catalogo.dart';
 import 'constantes.dart';
 import 'servicios.dart';
+import 'tmdb.dart';
 
 /// La pantalla de quien ya tiene la sesión abierta. Arriba, la barra con el
 /// nombre de la app, el menú de la cuenta y el menú de pestañas: Catálogo y
@@ -90,9 +91,11 @@ class MenuDeCuenta extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'La búsqueda de la pantalla de alta usa la API de TMDB, '
-                  'pero TMDB no respalda ni certifica esta aplicación.',
+                  'La búsqueda de la pantalla de alta usa la API de TMDB '
+                  '(themoviedb.org).',
                 ),
+                SizedBox(height: 12),
+                Text(Tmdb.atribucion),
               ],
             );
           case 'salir':

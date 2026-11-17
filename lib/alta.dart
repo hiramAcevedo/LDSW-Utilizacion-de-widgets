@@ -246,14 +246,9 @@ class _AltaPageState extends State<AltaPage> {
                         onTap: _buscando ? null : () => _elegir(resultado),
                       ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  'Datos e imágenes de TMDB.',
-                  style: tema.textTheme.labelSmall?.copyWith(
-                    color: tema.colorScheme.onSurfaceVariant,
-                  ),
-                ),
               ],
+              const SizedBox(height: 8),
+              const AtribucionTmdb(),
               const Divider(height: 32),
               Text('Datos de la película', style: tema.textTheme.titleMedium),
               const SizedBox(height: 12),
@@ -384,6 +379,31 @@ class _AltaPageState extends State<AltaPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// El crédito de TMDB junto a la búsqueda: de dónde salen los datos y las
+/// imágenes, y el aviso que piden sus condiciones de uso.
+class AtribucionTmdb extends StatelessWidget {
+  const AtribucionTmdb({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    final tenue = tema.textTheme.labelSmall?.copyWith(
+      color: tema.colorScheme.onSurfaceVariant,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 2,
+      children: [
+        Text('Datos e imágenes de TMDB (themoviedb.org).', style: tenue),
+        Text(
+          Tmdb.atribucion,
+          style: tenue?.copyWith(fontStyle: FontStyle.italic),
+        ),
+      ],
     );
   }
 }

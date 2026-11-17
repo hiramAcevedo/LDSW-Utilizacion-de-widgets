@@ -18,6 +18,10 @@ class Tmdb {
   final http.Client _cliente;
 
   static const String servidor = 'api.themoviedb.org';
+
+  /// El aviso que piden las condiciones de uso de la API de TMDB, tal cual.
+  static const String atribucion =
+      'This product uses the TMDB API but is not endorsed or certified by TMDB.';
   static const String idioma = 'es-MX';
 
   /// Si hay token. Sin él, la pantalla de alta sólo ofrece el formulario.
